@@ -1,14 +1,26 @@
 const shortid = require("shortid");
-const URL = require("../models/url")
+const URL = require("../models/url");
+const checkURL = require('url').URL
+
+function urlChecker(urlString) {
+    try {
+      new checkURL(urlString)
+      return true
+    } catch {
+      return false
+    }
+  } 
 
 async function handleGenerateNewShortUrl(req, res) {
-    
+    const urlString = req.body.url;
+    const isValidUrl = urlChecker(urlString);
+
     const shortID = shortid.generate();
-    const body = req.body;
-    if (!body) return res.status(400).json({ msg: "URL is required"});
+    
+    if (!urlString || !isValidUrl) return res.status(400).json({ msg: "a valid URL is required"});
     await URL.create({
         shortId: shortID,
-        redirectURL: body.url,
+        redirectURL: urlString,
         visitHistory: []
     })
     return res.status(200).json({ id: shortID});
