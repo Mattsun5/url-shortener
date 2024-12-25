@@ -2,28 +2,63 @@ const shortid = require("shortid");
 const URL = require("../models/url");
 const checkURL = require('url').URL
 
-function urlChecker(urlString) {
-    try {
-      new checkURL(urlString)
-      return true
-    } catch {
-      return false
-    }
+
+async function getAllUrl() {
+    const allShortenedUrls = await URL.find({ });
+    return allShortenedUrls;
   } 
 
-async function handleGenerateNewShortUrl(req, res) {
-    const urlString = req.body.url;
-    const isValidUrl = urlChecker(urlString);
+async function handleGetRequest(req, res) {
+    const allShortenedUrls = await getAllUrl();
+    return res.render("../views/home", { shortenedUrls: allShortenedUrls});
+} 
 
+
+// HANDLE POST METHOD FOR VIEW AND API
+// url validator
+function validateUrl(urlString) {
+    try {
+        new checkURL(urlString)
+        return true
+      } catch {
+        return false
+      }
+}
+// id generator
+function generateId() {
     const shortID = shortid.generate();
-    
-    if (!urlString || !isValidUrl) return res.status(400).json({ msg: "a valid URL is required"});
+    return shortID
+}
+// add to db and return id
+async function addNewShortURl(urlString, shortID) {
     await URL.create({
         shortId: shortID,
         redirectURL: urlString,
         visitHistory: []
     })
+    console.log("id added");
+}
+
+function handleApiGenerateNewShortUrl(req, res) {
+    const urlString = req.body.url;
+    if(!validateUrl(urlString)) {return res.status(400).json({ msg: "a valid URL is required"})}
+    const shortID = generateId();
+    addNewShortURl(urlString, shortID);
     return res.status(200).json({ id: shortID});
+}
+
+async function handleGenerateNewShortUrl(req, res) {
+    const urlString = req.body.url;
+    const allShortenedUrls = await getAllUrl();
+    if(!validateUrl(urlString)) 
+    {
+        return res.status(400).render("home", { msg: "a valid URL is required", shortenedUrls: allShortenedUrls});
+    }
+    const shortID = generateId();
+    addNewShortURl(urlString, shortID);
+
+    
+    return res.status(200).render("home", { id: shortID, shortenedUrls: allShortenedUrls});
 }
 
 async function handleRedirectUrl(req, res) {
@@ -51,7 +86,9 @@ async function handleUrlVisits(req, res) {
 }
 
 module.exports = {
+    handleApiGenerateNewShortUrl,
     handleGenerateNewShortUrl,
     handleRedirectUrl,
-    handleUrlVisits
+    handleUrlVisits,
+    handleGetRequest
 }
