@@ -13,6 +13,11 @@ async function handleGetRequest(req, res) {
     return res.render("../views/home", { shortenedUrls: allShortenedUrls});
 } 
 
+async function handleApiGetRequest(req, res) {
+    const allShortenedUrls = await getAllUrl();
+    return res.json({shortenedUrls: allShortenedUrls});
+} 
+
 
 // HANDLE POST METHOD FOR VIEW AND API
 // url validator
@@ -87,6 +92,7 @@ async function handleUrlVisits(req, res) {
 
 module.exports = {
     handleApiGenerateNewShortUrl,
+    handleApiGetRequest,
     handleGenerateNewShortUrl,
     handleRedirectUrl,
     handleUrlVisits,
