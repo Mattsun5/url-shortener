@@ -24,4 +24,6 @@ app.use("/api/url", urlRouter);
 
 app.use("/url", staticRouter);
 
+app.use("/", staticRouter);
+
 app.listen(PORT, () => {console.log(`server is running at port: ${PORT}`)});
